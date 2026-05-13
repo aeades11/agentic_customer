@@ -1,0 +1,1030 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0B0F0A; color: #fff; font-family: 'DM Sans', 'Segoe UI', sans-serif; min-height: 100vh; }
+  :root {
+    --green: #86BC25; --green2: #66CC00;
+    --bg: #0B0F0A; --surface: #121A0D; --border: #1E2E15;
+    --muted: #CCCCCC; --dim: #888;
+  }
+  input, textarea, select { font-family: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* NAV */
+  nav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.5rem; height: 56px; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; }
+  .logo-icon { width: 28px; height: 28px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* BUTTONS */
+  .btn-primary { background: var(--green); color: #0B0F0A; border: none; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 700; transition: opacity .2s; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 8px 18px; font-size: 13px; font-weight: 600; transition: border-color .2s; }
+  .btn-secondary:hover { border-color: #2A3E20; }
+  .btn-ghost { background: transparent; color: var(--green); border: 1px solid var(--green); border-radius: 10px; padding: 7px 16px; font-size: 12px; font-weight: 600; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+  .card-glow { background: var(--surface); border: 1px solid var(--green); border-radius: 16px; padding: 1.5rem; box-shadow: 0 0 0 1px rgba(134,188,37,.12), inset 0 0 30px rgba(134,188,37,.03); }
+
+  /* INPUTS */
+  .inp { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; color: #fff; font-size: 13px; padding: 9px 12px; outline: none; }
+  .inp:focus { border-color: var(--green); }
+  .ta { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; color: #fff; font-size: 13px; padding: 9px 12px; outline: none; resize: vertical; min-height: 80px; }
+  .ta:focus { border-color: var(--green); }
+  select.inp { appearance: none; cursor: pointer; }
+  .field { margin-bottom: 1.1rem; }
+  .flabel { display: block; font-size: 11px; font-weight: 700; color: var(--green); margin-bottom: 3px; letter-spacing: .6px; text-transform: uppercase; }
+  .fhint { font-size: 11px; color: #666; margin-bottom: 6px; line-height: 1.4; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* LAYOUT */
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
+  #main { flex: 1; display: flex; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 200px; flex-shrink: 0;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+  .sidebar-label { padding: .75rem 1rem .5rem; font-size: 10px; font-weight: 700; color: #444; letter-spacing: .6px; text-transform: uppercase; }
+  .step-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 9px 1rem; text-align: left;
+    background: transparent; border: none; border-left: 3px solid transparent;
+    color: #555; font-size: 12px; transition: all .2s;
+  }
+  .step-btn.active { background: rgba(134,188,37,.1); border-left-color: var(--green); color: #fff; }
+  .step-btn.done { color: #888; }
+  .step-dot {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    background: var(--bg); border: 2px solid var(--border); color: #444;
+  }
+  .step-dot.active { background: var(--green); border-color: var(--green); color: #0B0F0A; }
+  .step-dot.done { background: #1E3A0A; border-color: var(--green); color: var(--green); }
+  .sidebar-export { padding: 1rem; margin-top: auto; }
+
+  /* WIZARD CONTENT */
+  #wizard-content { flex: 1; padding: 1.5rem; overflow-y: auto; max-width: 920px; }
+  .step-header { margin-bottom: 1.25rem; }
+  .step-meta { font-size: 10px; color: #444; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
+  .step-title { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 10px; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width .4s; }
+  .instruction-box { background: rgba(134,188,37,.05); border: 1px solid rgba(134,188,37,.2); border-radius: 10px; padding: 10px 14px; margin-bottom: 1.1rem; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .bottom-nav { display: flex; justify-content: space-between; margin-top: 1rem; }
+
+  /* LANDING */
+  #landing { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1.5rem; text-align: center; }
+  .badge { display: inline-block; background: rgba(134,188,37,.1); border: 1px solid rgba(134,188,37,.3); border-radius: 20px; padding: 5px 14px; font-size: 11px; color: var(--green); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .hero-title { font-size: 38px; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; max-width: 620px; margin: 0 auto 1.25rem; }
+  .hero-sub { font-size: 16px; color: var(--muted); line-height: 1.7; max-width: 560px; margin: 0 auto 2rem; }
+  .landing-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 800px; margin-top: 3rem; text-align: left; }
+  .lcard { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+  .lcard-icon { font-size: 24px; margin-bottom: 10px; }
+  .lcard-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .lcard-desc { font-size: 12px; color: #777; line-height: 1.6; }
+
+  /* MODAL */
+  #modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.85); display: flex; }
+  #modal { display: flex; width: 100%; height: 100%; background: var(--bg); }
+  #modal-toc { width: 200px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); padding: 1rem 0; overflow-y: auto; }
+  #modal-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .modal-header { padding: .9rem 1.5rem; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .modal-content { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+  .modal-footer { padding: .9rem 1.5rem; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-between; flex-shrink: 0; }
+  .toc-label { padding: .5rem 1rem .75rem; font-size: 10px; font-weight: 700; color: var(--green); letter-spacing: .5px; }
+  .toc-btn { display: block; width: 100%; text-align: left; padding: 8px 1rem; font-size: 11px; background: transparent; border: none; border-left: 3px solid transparent; color: #666; cursor: pointer; transition: all .2s; }
+  .toc-btn.active { background: rgba(134,188,37,.1); border-left-color: var(--green); color: var(--green); }
+  .sec-heading { font-size: 14px; font-weight: 700; color: var(--green); margin: 1.25rem 0 .6rem; border-left: 3px solid var(--green); padding-left: 10px; }
+  .sub-heading { font-size: 11px; font-weight: 700; color: #fff; margin: .9rem 0 .4rem; text-transform: uppercase; letter-spacing: .5px; }
+  .sec-text { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: .75rem; white-space: pre-wrap; }
+  .sec-list { margin: .4rem 0 .75rem; padding-left: 18px; }
+  .sec-list li { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 3px; }
+  .persona-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 10px; }
+  .persona-name { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+  .persona-row { display: flex; gap: 8px; font-size: 12px; margin-bottom: 3px; }
+  .persona-key { color: #555; min-width: 110px; flex-shrink: 0; }
+  .persona-val { color: var(--muted); }
+  .roadmap-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .roadmap-col { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .readiness-display { text-align: center; padding: 1rem; }
+  .readiness-score { font-size: 48px; font-weight: 800; color: var(--green); line-height: 1; }
+  
+  /* CLIENT TYPE CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; background: transparent; color: var(--muted); border: 1.5px solid var(--border); cursor: pointer; transition: all .2s; }
+  .chip.active { background: var(--green); color: #0B0F0A; border-color: var(--green); }
+
+  /* FILE DROP */
+  .file-drop { border: 1.5px dashed #2A3E20; border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; margin-top: .75rem; transition: all .2s; font-size: 12px; color: #555; }
+  .file-drop:hover { border-color: var(--green); background: rgba(134,188,37,.04); color: #888; }
+  .file-drop.dragging { border-color: var(--green); background: rgba(134,188,37,.06); }
+
+  /* SETTINGS MODAL */
+  #settings-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; }
+  #settings-overlay.show { display: flex; }
+  .settings-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; width: 360px; }
+  
+  /* SLIDER */
+  input[type=range] { accent-color: var(--green); width: 100%; }
+  
+  /* READINESS BARS */
+  .r-row { margin-bottom: 1rem; }
+  .r-label { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+  .r-hint { font-size: 11px; color: #555; margin-bottom: 6px; }
+  .r-control { display: flex; align-items: center; gap: 10px; }
+  .r-val { font-size: 18px; font-weight: 700; color: var(--green); min-width: 22px; text-align: center; }
+  .r-text { font-size: 11px; color: #444; min-width: 70px; }
+  .score-bar-wrap { height: 6px; background: var(--border); border-radius: 3px; margin-top: 12px; max-width: 260px; margin-inline: auto; }
+  .score-bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width .4s; }
+</style>
+</head>
+<body>
+<div id="app">
+  <nav>
+    <div class="nav-logo">
+      <div class="logo-icon">⚡</div>
+      <span><span style="color:var(--green)">Agentic</span> Strategy Agent</span>
+    </div>
+    <div class="nav-actions" id="nav-actions">
+      <button class="btn-ghost" id="btn-settings-nav">⚙ Settings</button>
+    </div>
+  </nav>
+
+  <!-- LANDING -->
+  <div id="landing">
+    <div class="badge">Agentic Strategy Agent · Deloitte</div>
+    <h1 class="hero-title">
+      Hi <span id="hero-name" style="color:var(--green)">Sarah</span>, I'm here to help you think through <span style="color:var(--green)">customer strategy.</span>
+    </h1>
+    <p class="hero-sub">I can help you organise inputs, structure discovery, and shape an early strategy deliverable you can build on and take forward to the team and the client.</p>
+    <button class="btn-primary" style="font-size:15px;padding:12px 36px;border-radius:12px" id="btn-start">Get Started →</button>
+    <div class="landing-cards">
+      <div class="lcard">
+        <div class="lcard-icon">🧭</div>
+        <div class="lcard-title">Guided, but flexible</div>
+        <div class="lcard-desc">I can help you structure the work without forcing a one-size-fits-all approach. I'll prompt for the inputs that matter, when they're useful.</div>
+      </div>
+      <div class="lcard">
+        <div class="lcard-icon">✍️</div>
+        <div class="lcard-title">Synthesis when you need it</div>
+        <div class="lcard-desc">When you're ready, I can help draft a clear strategy narrative you can review, edit, and export to Word or PowerPoint.</div>
+      </div>
+      <div class="lcard">
+        <div class="lcard-icon">🤝</div>
+        <div class="lcard-title">Built to support your thinking</div>
+        <div class="lcard-desc">You are in control — let me take care of structure and synthesis, so you can focus on insight and client conversations.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIZARD (hidden initially) -->
+  <div id="wizard" style="display:none;flex:1;flex-direction:column">
+    <div id="main">
+      <div id="sidebar">
+        <div class="sidebar-label">Discovery Modules</div>
+        <button class="step-btn active" data-step="1" onclick="goStep(1)"><div class="step-dot active" id="dot-1">1</div>Client Context</button>
+        <button class="step-btn" data-step="2" onclick="goStep(2)"><div class="step-dot" id="dot-2">2</div>Customer & Journeys</button>
+        <button class="step-btn" data-step="3" onclick="goStep(3)"><div class="step-dot" id="dot-3">3</div>Propositions</button>
+        <button class="step-btn" data-step="4" onclick="goStep(4)"><div class="step-dot" id="dot-4">4</div>Channels</button>
+        <button class="step-btn" data-step="5" onclick="goStep(5)"><div class="step-dot" id="dot-5">5</div>Operating Model</button>
+        <button class="step-btn" data-step="6" onclick="goStep(6)"><div class="step-dot" id="dot-6">6</div>Value Capture</button>
+        <button class="step-btn" data-step="7" onclick="goStep(7)"><div class="step-dot" id="dot-7">7</div>Readiness Score</button>
+        <div class="sidebar-export">
+          <button class="btn-primary" style="width:100%;font-size:12px" onclick="openPreview()">Export Strategy Deck ↗</button>
+        </div>
+      </div>
+      <div id="wizard-content">
+        <!-- Step header -->
+        <div class="step-header">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span id="step-icon" style="font-size:22px">🏢</span>
+              <div>
+                <div class="step-meta" id="step-meta">Step 1 of 7</div>
+                <div class="step-title" id="step-title">Client Context</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-secondary" id="btn-back" onclick="prevStep()">← Back</button>
+              <button class="btn-primary" id="btn-next" onclick="nextStep()">Next →</button>
+            </div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="prog" style="width:14.3%"></div></div>
+        </div>
+        <!-- Step panels -->
+        <div id="step-panels"></div>
+        <div class="bottom-nav">
+          <button class="btn-secondary" onclick="prevStep()" id="btn-back2">← Back</button>
+          <button class="btn-primary" onclick="nextStep()" id="btn-next2">Continue →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW MODAL -->
+  <div id="modal-overlay" style="display:none">
+    <div id="modal">
+      <div id="modal-toc">
+        <div class="toc-label">STRATEGY SECTIONS</div>
+        <button class="toc-btn active" onclick="tocGo(0)" id="toc-0"><span style="color:#444;margin-right:4px">01</span> Executive Summary</button>
+        <button class="toc-btn" onclick="tocGo(1)" id="toc-1"><span style="color:#444;margin-right:4px">02</span> Vision & Ambition</button>
+        <button class="toc-btn" onclick="tocGo(2)" id="toc-2"><span style="color:#444;margin-right:4px">03</span> Propositions</button>
+        <button class="toc-btn" onclick="tocGo(3)" id="toc-3"><span style="color:#444;margin-right:4px">04</span> Channels</button>
+        <button class="toc-btn" onclick="tocGo(4)" id="toc-4"><span style="color:#444;margin-right:4px">05</span> Operating Model</button>
+        <button class="toc-btn" onclick="tocGo(5)" id="toc-5"><span style="color:#444;margin-right:4px">06</span> Value Capture</button>
+        <button class="toc-btn" onclick="tocGo(6)" id="toc-6"><span style="color:#444;margin-right:4px">07</span> Roadmap</button>
+        <button class="toc-btn" onclick="tocGo(7)" id="toc-7"><span style="color:#444;margin-right:4px">08</span> Assumptions</button>
+        <button class="toc-btn" onclick="tocGo(8)" id="toc-8"><span style="color:#444;margin-right:4px">09</span> Workshop Prompts</button>
+      </div>
+      <div id="modal-body">
+        <div class="modal-header">
+          <div>
+            <div style="font-weight:700;font-size:15px">Strategy Preview</div>
+            <div id="modal-subtitle" style="font-size:11px;color:#555">Client · Agentic Customer Strategy</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn-ghost" id="btn-edit-toggle" onclick="toggleEdit()" style="font-size:11px;padding:6px 12px">✏ Edit</button>
+            <button class="btn-secondary" onclick="exportDoc('txt')" style="font-size:11px;padding:6px 12px">⬇ Word</button>
+            <button class="btn-primary" onclick="exportDoc('ppt')" style="font-size:11px;padding:6px 12px">⬇ PPT</button>
+            <button class="btn-secondary" onclick="closePreview()" style="padding:6px 10px;font-size:16px">×</button>
+          </div>
+        </div>
+        <div class="modal-content" id="modal-section-content"></div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="tocPrev()">← Previous</button>
+          <span style="font-size:12px;color:#555;align-self:center" id="modal-page-label">Section 1 of 9</span>
+          <button class="btn-primary" onclick="tocNext()">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-overlay" class="show" style="display:none">
+    <div class="settings-box">
+      <h3 style="font-size:15px;margin-bottom:1rem">Settings</h3>
+      <div class="field">
+        <label class="flabel">Teammate Name</label>
+        <p class="fhint">Used in the landing page greeting</p>
+        <input class="inp" id="settings-name" value="Sarah" />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:1.25rem">
+        <button class="btn-primary" onclick="saveSettings()">Save</button>
+        <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="brand-list">
+  <option value="Westpac"><option value="NAB"><option value="ANZ"><option value="Commonwealth Bank">
+  <option value="CBA"><option value="Macquarie"><option value="AustralianSuper"><option value="REST">
+  <option value="Hostplus"><option value="Aware Super"><option value="IAG"><option value="NRMA">
+  <option value="Suncorp"><option value="QBE"><option value="Allianz Australia"><option value="Woolworths">
+  <option value="Coles"><option value="Aldi"><option value="Cotton On Group"><option value="MYER">
+  <option value="JB Hi-Fi"><option value="Harvey Norman"><option value="Qantas"><option value="Virgin Australia">
+  <option value="Jetstar"><option value="AGL"><option value="Origin Energy"><option value="EnergyAustralia">
+  <option value="Telstra"><option value="Optus"><option value="TPG Telecom"><option value="Bupa">
+  <option value="Medibank"><option value="nib"><option value="Transurban"><option value="Toyota Australia">
+  <option value="Tesla Australia"><option value="Netflix"><option value="Stan">
+</datalist>
+
+<script>
+const BRAND_MAP = {
+  "Westpac":{"industry":"Banking & Financial Services","geo":"Australia","pos":"Major retail and commercial bank; trusted, established brand","comp":"Big 4 banks (NAB, ANZ, CBA), fintech challengers (Up, Revolut)"},
+  "NAB":{"industry":"Banking & Financial Services","geo":"Australia","pos":"Major retail and business bank; strong SME focus","comp":"Big 4 banks, neo-banks, fintech lenders"},
+  "ANZ":{"industry":"Banking & Financial Services","geo":"Australia","pos":"Major bank with strong Asia-Pacific presence","comp":"Big 4 banks, international banks, fintech challengers"},
+  "Commonwealth Bank":{"industry":"Banking & Financial Services","geo":"Australia","pos":"Australia's largest bank; digital innovation leader","comp":"Big 4 banks, neobanks, BNPL players"},
+  "CBA":{"industry":"Banking & Financial Services","geo":"Australia","pos":"Australia's largest bank; digital innovation leader","comp":"Big 4 banks, neobanks, BNPL players"},
+  "Macquarie":{"industry":"Banking & Financial Services","geo":"Australia","pos":"Premium investment and private banking; high-net-worth focus","comp":"Global investment banks, private banks, wealth platforms"},
+  "AustralianSuper":{"industry":"Superannuation & Wealth","geo":"Australia","pos":"Largest industry superannuation fund; member-first ethos","comp":"REST, Hostplus, Aware Super, retail super funds"},
+  "REST":{"industry":"Superannuation & Wealth","geo":"Australia","pos":"Industry fund focused on younger workers and retail sector","comp":"AustralianSuper, Hostplus, retail funds"},
+  "Hostplus":{"industry":"Superannuation & Wealth","geo":"Australia","pos":"Hospitality and tourism industry super fund","comp":"AustralianSuper, REST, Aware Super"},
+  "Aware Super":{"industry":"Superannuation & Wealth","geo":"Australia","pos":"Public sector and community-focused industry fund","comp":"AustralianSuper, REST, retail super funds"},
+  "IAG":{"industry":"Insurance","geo":"Australia","pos":"Largest general insurer; multi-brand (NRMA, CGU)","comp":"Suncorp, QBE, Allianz, challenger insurers"},
+  "NRMA":{"industry":"Insurance","geo":"Australia","pos":"Trusted roadside and general insurer; community heritage","comp":"RACV, RACQ, Budget Direct, online insurers"},
+  "Suncorp":{"industry":"Insurance","geo":"Australia","pos":"Diversified insurer and bank; Queensland heritage","comp":"IAG, QBE, Allianz, challenger insurers"},
+  "QBE":{"industry":"Insurance","geo":"Australia","pos":"Commercial and specialty insurer; global operations","comp":"IAG, Allianz, Zurich, specialty insurers"},
+  "Allianz Australia":{"industry":"Insurance","geo":"Australia","pos":"Global insurer with strong commercial lines presence","comp":"IAG, Suncorp, QBE, international insurers"},
+  "Woolworths":{"industry":"Grocery & FMCG Retail","geo":"Australia","pos":"Market leader; everyday fresh food and convenience","comp":"Coles, Aldi, IGA, online grocery players"},
+  "Coles":{"industry":"Grocery & FMCG Retail","geo":"Australia","pos":"Value and quality grocery; strong private label","comp":"Woolworths, Aldi, Costco, IGA"},
+  "Aldi":{"industry":"Grocery & FMCG Retail","geo":"Australia","pos":"Deep discount; curated private label range","comp":"Woolworths, Coles, IGA"},
+  "Cotton On Group":{"industry":"Fashion & Retail","geo":"Australia","pos":"Affordable fast fashion; youth-focused multi-brand","comp":"H&M, Zara, MYER, Target"},
+  "MYER":{"industry":"Fashion & Retail","geo":"Australia","pos":"Premium department store; aspirational lifestyle","comp":"David Jones, Target, online fashion retailers"},
+  "JB Hi-Fi":{"industry":"Consumer Electronics","geo":"Australia","pos":"Value consumer electronics and entertainment","comp":"Harvey Norman, The Good Guys, Apple, Amazon"},
+  "Harvey Norman":{"industry":"Consumer Electronics","geo":"Australia","pos":"Full-range home, tech and furniture retail","comp":"JB Hi-Fi, The Good Guys, Bunnings"},
+  "Qantas":{"industry":"Travel & Accommodation","geo":"Australia","pos":"Premium national carrier; loyalty program leader","comp":"Virgin Australia, Jetstar, international carriers"},
+  "Virgin Australia":{"industry":"Travel & Accommodation","geo":"Australia","pos":"Value full-service carrier; customer experience focus","comp":"Qantas, Jetstar, Rex Airlines"},
+  "Jetstar":{"industry":"Travel & Accommodation","geo":"Australia","pos":"Low-cost carrier; budget leisure travel","comp":"Virgin Australia, Tigerair, budget international carriers"},
+  "AGL":{"industry":"Energy & Utilities","geo":"Australia","pos":"Largest energy retailer; transitioning to renewables","comp":"Origin Energy, EnergyAustralia, smaller retailers"},
+  "Origin Energy":{"industry":"Energy & Utilities","geo":"Australia","pos":"Integrated energy company; LNG and retail focus","comp":"AGL, EnergyAustralia, Alinta Energy"},
+  "EnergyAustralia":{"industry":"Energy & Utilities","geo":"Australia","pos":"National energy retailer; business and residential","comp":"AGL, Origin Energy, Alinta Energy"},
+  "Telstra":{"industry":"Telco & Internet","geo":"Australia","pos":"Market leader; premium network and enterprise services","comp":"Optus, TPG, Vodafone, MVNOs"},
+  "Optus":{"industry":"Telco & Internet","geo":"Australia","pos":"Second-largest carrier; value and entertainment bundling","comp":"Telstra, TPG, Vodafone, MVNOs"},
+  "TPG Telecom":{"industry":"Telco & Internet","geo":"Australia","pos":"Value broadband and mobile; multi-brand portfolio","comp":"Telstra, Optus, Aussie Broadband"},
+  "Bupa":{"industry":"Health & Wellness","geo":"Australia","pos":"Integrated health insurer and provider; premium positioning","comp":"Medibank, nib, HCF, government health"},
+  "Medibank":{"industry":"Health & Wellness","geo":"Australia","pos":"Leading private health insurer; brand trust focus","comp":"Bupa, nib, HCF, challenger funds"},
+  "nib":{"industry":"Health & Wellness","geo":"Australia","pos":"Accessible health insurance; digital-first challenger","comp":"Bupa, Medibank, HCF, travel insurance players"},
+  "Transurban":{"industry":"Transport","geo":"Australia","pos":"Toll road operator; network scale and technology focus","comp":"Government infrastructure, mobility platforms"},
+  "Toyota Australia":{"industry":"Cars & Automotive","geo":"Australia","pos":"Market-leading auto brand; reliability and value","comp":"Mazda, Hyundai, Ford, Volkswagen, EV entrants"},
+  "Tesla Australia":{"industry":"Cars & Automotive","geo":"Australia","pos":"Premium EV pioneer; technology and sustainability","comp":"Polestar, BYD, legacy OEM EV models"},
+  "Netflix":{"industry":"Media, Streaming & Entertainment","geo":"Global","pos":"Global streaming leader; content and recommendation engine","comp":"Disney+, Amazon Prime, Stan, Apple TV+"},
+  "Stan":{"industry":"Media, Streaming & Entertainment","geo":"Australia","pos":"Australian SVOD with local content focus","comp":"Netflix, Disney+, Amazon Prime, Paramount+"},
+};
+
+const INDUSTRIES = ["Banking & Financial Services","Superannuation & Wealth","Insurance","Grocery & FMCG Retail","Fashion & Retail","Consumer Electronics","Travel & Accommodation","Energy & Utilities","Telco & Internet","Health & Wellness","Media & Entertainment","Media, Streaming & Entertainment","Cars & Automotive","Transport","News & Journalism","Education","Professional Services","Real Estate","Technology","Other"];
+const GEOS = ["Australia","New Zealand","United Kingdom","United States","Canada","Europe (multi-market)","Asia Pacific","Southeast Asia","Global","Other"];
+const CLIENT_TYPES = ["Retail","FMCG","FSI","Utilities","Telco","Tourism & Hospitality","Health","Education","Transport & Automotive","Media & Entertainment"];
+const STEP_META = [
+  {icon:"🏢",title:"Client Context"},
+  {icon:"👥",title:"Customer & Journeys"},
+  {icon:"💡",title:"Propositions & Experience"},
+  {icon:"📡",title:"Channels & Interactions"},
+  {icon:"⚙️",title:"Operating Model"},
+  {icon:"📈",title:"Value Capture"},
+  {icon:"🎯",title:"Readiness Score"},
+];
+
+let currentStep = 1;
+let editMode = false;
+let modalSection = 0;
+let strategyData = null;
+
+// FORM STATE
+let form = {
+  clientName:"",industry:"",geography:"",clientType:"",brandPositioning:"",competitiveSet:"",regulatoryContext:"",strategicContext:"",
+  customerSegments:"",customerBehaviours:"",keyJourneys:"",painPoints:"",agentDelegation:"",loyaltyDrivers:"",
+  currentPropositions:"",propositionStrengths:"",propositionGaps:"",agentReadiness:"",experienceAmbition:"",newPropositions:"",
+  currentChannels:"",digitalMaturity:"",channelConflicts:"",agentChannels:"",humanMoments:"",channelInvestments:"",
+  coreCapabilities:"",capabilityGaps:"",dataAssets:"",techStack:"",operatingConstraints:"",transformationReadiness:"",
+  revenueDrivers:"",costStructure:"",valueAtRisk:"",agentEconomics:"",businessModelOptions:"",roiHypothesis:"",
+  readinessData:"3",readinessTech:"3",readinessOrg:"3",readinessStrategy:"3",readinessCustomer:"3",
+  keyAssumptions:"",openQuestions:""
+};
+let teammateName = "Sarah";
+
+function loadState(){
+  try {
+    const s = localStorage.getItem("asa_form2");
+    if(s) form = {...form,...JSON.parse(s)};
+    const n = localStorage.getItem("asa_teammate2");
+    if(n) teammateName = n;
+    const step = localStorage.getItem("asa_step2");
+    if(step) currentStep = parseInt(step)||1;
+    const pg = localStorage.getItem("asa_page2");
+    if(pg === "wizard") { document.getElementById("landing").style.display="none"; document.getElementById("wizard").style.display="flex"; updateNavWizard(); }
+  } catch(e){}
+}
+function saveState(){
+  localStorage.setItem("asa_form2", JSON.stringify(form));
+  localStorage.setItem("asa_step2", currentStep);
+}
+function setField(key, val){
+  form[key] = val;
+  saveState();
+}
+
+function makeSelect(id, key, options, placeholder){
+  const sel = document.createElement("select");
+  sel.className = "inp";
+  sel.id = id;
+  const ph = document.createElement("option");
+  ph.value=""; ph.textContent=placeholder;
+  sel.appendChild(ph);
+  options.forEach(o => {
+    const opt = document.createElement("option");
+    opt.value=o; opt.textContent=o;
+    if(form[key]===o) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  sel.onchange = e => setField(key, e.target.value);
+  return sel;
+}
+function makeInput(id, key, placeholder){
+  const inp = document.createElement("input");
+  inp.className="inp"; inp.id=id;
+  inp.placeholder=placeholder||"";
+  inp.value=form[key]||"";
+  inp.setAttribute("list","brand-list");
+  inp.oninput = e => {
+    setField(key, e.target.value);
+    if(key==="clientName") autoFill(e.target.value);
+  };
+  return inp;
+}
+function makeTA(id, key, placeholder, rows){
+  const ta = document.createElement("textarea");
+  ta.className="ta"; ta.id=id;
+  ta.placeholder=placeholder||"";
+  ta.value=form[key]||"";
+  if(rows) ta.style.minHeight=(rows*28)+"px";
+  ta.oninput = e => setField(key, e.target.value);
+  return ta;
+}
+function makeField(label, hint, el){
+  const d = document.createElement("div");
+  d.className="field";
+  const lb = document.createElement("label");
+  lb.className="flabel"; lb.textContent=label;
+  d.appendChild(lb);
+  if(hint){ const h=document.createElement("p"); h.className="fhint"; h.textContent=hint; d.appendChild(h); }
+  d.appendChild(el);
+  return d;
+}
+function makeGrid2(...fields){
+  const g = document.createElement("div");
+  g.className="grid2";
+  fields.forEach(f => g.appendChild(f));
+  return g;
+}
+function makeChips(key){
+  const wrap = document.createElement("div");
+  wrap.className="chips";
+  CLIENT_TYPES.forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "chip" + (form[key]===t?" active":"");
+    btn.textContent = t;
+    btn.onclick = () => {
+      setField(key,t);
+      wrap.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+      btn.classList.add("active");
+    };
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+function makeFileDrop(){
+  const d = document.createElement("div");
+  d.className="file-drop";
+  d.innerHTML="📎 Drag & drop supporting documents here, or <span style='color:var(--green)'>browse</span>";
+  const inp = document.createElement("input");
+  inp.type="file"; inp.multiple=true; inp.style.display="none";
+  d.onclick = () => inp.click();
+  d.ondragover = e => { e.preventDefault(); d.classList.add("dragging"); };
+  d.ondragleave = () => d.classList.remove("dragging");
+  d.ondrop = e => {
+    e.preventDefault(); d.classList.remove("dragging");
+    const files = Array.from(e.dataTransfer.files);
+    const names = files.map(f=>f.name);
+    const tags = names.map(n=>`<span style='font-size:11px;color:var(--green);background:rgba(134,188,37,.1);border-radius:5px;padding:2px 7px;margin:2px;display:inline-block'>${n}</span>`).join("");
+    d.innerHTML = "📎 " + tags + " <br><span style='font-size:11px;color:#555'>Drop more files to add</span>";
+  };
+  d.appendChild(inp);
+  return d;
+}
+function makeReadinessSlider(key, label, hint){
+  const d = document.createElement("div");
+  d.className="r-row";
+  const vals = ["","Very Low","Low","Moderate","High","Leading"];
+  d.innerHTML = `<div class="r-label">${label}</div><div class="r-hint">${hint}</div><div class="r-control"><input type="range" min="1" max="5" step="1" value="${form[key]||3}" style="flex:1" id="slider-${key}"><span class="r-val" id="rval-${key}">${form[key]||3}</span><span class="r-text" id="rtxt-${key}">${vals[form[key]||3]}</span></div><div style="display:flex;justify-content:space-between;font-size:10px;color:#444;margin-top:2px"><span>1 – Very Low</span><span>5 – Leading</span></div>`;
+  setTimeout(() => {
+    const sl = document.getElementById(`slider-${key}`);
+    if(sl) sl.oninput = e => {
+      setField(key, e.target.value);
+      document.getElementById(`rval-${key}`).textContent = e.target.value;
+      document.getElementById(`rtxt-${key}`).textContent = vals[e.target.value];
+      updateReadinessScore();
+    };
+  }, 50);
+  return d;
+}
+
+function buildStep1(){
+  const wrap = document.createElement("div");
+  const ib = document.createElement("div");
+  ib.className="instruction-box";
+  ib.textContent="Provide organisational context including who the client is, where they operate, and how they compete.";
+  wrap.appendChild(ib);
+  wrap.appendChild(makeGrid2(
+    makeField("Client Name","Enter the organisation or brand name you are working with",makeInput("f-clientName","clientName","e.g. Westpac, Telstra, Qantas")),
+    makeField("Client Type","Select the closest category for this client",makeChips("clientType"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Industry / Category","Select the primary industry",makeSelect("f-industry","industry",INDUSTRIES,"Select industry…")),
+    makeField("Geography","Select the primary geography or market",makeSelect("f-geography","geography",GEOS,"Select geography…"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Brand Positioning","Describe how this organisation positions itself in the market",makeTA("f-brandPos","brandPositioning","e.g. Premium full-service bank with a focus on business customers")),
+    makeField("Competitive Set & Differentiation","List key competitors and describe what differentiates this organisation",makeTA("f-compSet","competitiveSet","e.g. Competes with Big 4 banks; differentiates on business banking depth"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Regulatory & Operational Context","Identify regulatory obligations or operational constraints",makeTA("f-regCtx","regulatoryContext","e.g. APRA-regulated; subject to CDR and open banking obligations")),
+    makeField("Strategic Context","Describe current strategic priorities or moments of change",makeTA("f-strCtx","strategicContext","e.g. Post-merger integration; AI disruption in customer acquisition"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+function buildStep2(){
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeGrid2(
+    makeField("Key Customer Segments","Describe the primary customer segments — who they are, what they value",makeTA("f-cs","customerSegments","e.g. Mass affluent retail customers 35–55; digital-native SMEs")),
+    makeField("Customer Behaviours & Trends","Identify key shifts in customer behaviour relevant to this category",makeTA("f-cb","customerBehaviours","e.g. Increasing use of comparison tools; declining branch visits"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Key Customer Journeys","List the 3–5 most important customer journeys",makeTA("f-kj","keyJourneys","e.g. Home loan application; account switching; insurance renewal")),
+    makeField("Customer Pain Points","Describe friction points or unmet needs",makeTA("f-pp","painPoints","e.g. Complex onboarding; opaque pricing; poor complaint resolution"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Agent Delegation Likelihood","Which tasks are customers most likely to delegate to AI agents in 2–3 years?",makeTA("f-ad","agentDelegation","e.g. Comparison shopping; policy renewal; routine claims")),
+    makeField("Loyalty & Switching Behaviour","What drives loyalty and what triggers switching?",makeTA("f-ld","loyaltyDrivers","e.g. Rate sensitivity; trust; convenience; switching friction"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+function buildStep3(){
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeGrid2(
+    makeField("Current Propositions","List core products, services, or value propositions offered",makeTA("f-cp","currentPropositions","e.g. Transaction accounts; home loans; personal insurance")),
+    makeField("Proposition Strengths","What is genuinely compelling about the current proposition set?",makeTA("f-ps","propositionStrengths","e.g. Competitive rates; strong brand trust; bundling benefits"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Proposition Gaps & Risks","Where are propositions vulnerable to agent disintermediation?",makeTA("f-pg","propositionGaps","e.g. Complex terms make comparison hard; opaque pricing")),
+    makeField("Agent-Readiness Assessment","How ready are current propositions to be discovered by AI agents?",makeTA("f-ar","agentReadiness","e.g. APIs exist but not public; pricing not machine-readable"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Experience Ambition","Describe the desired customer experience",makeTA("f-ea","experienceAmbition","e.g. Proactive, predictive, personalised at scale")),
+    makeField("New or Emerging Propositions","Propositions being considered or piloted related to the agentic shift",makeTA("f-np","newPropositions","e.g. AI-powered financial wellness coach; automated renewal"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+function buildStep4(){
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeGrid2(
+    makeField("Current Channel Mix","Key channels through which customers interact today",makeTA("f-cc","currentChannels","e.g. Mobile app (primary); branch network (declining); call centre")),
+    makeField("Digital Maturity","Assess current digital capability and experience quality",makeTA("f-dm","digitalMaturity","e.g. Mobile app rated 4.2★; digital account opening live; no real-time personalisation"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Channel Conflicts & Tensions","Known tensions or conflicts across the channel mix",makeTA("f-cf","channelConflicts","e.g. Broker channel conflicts with direct digital")),
+    makeField("Agent-Driven Channel Implications","Channels most at risk from or enabled by agentic customer behaviour",makeTA("f-ac","agentChannels","e.g. Comparison aggregators become agent-preferred; call centre shifts to APIs"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Human Moments Worth Protecting","Interactions where human connection remains critical",makeTA("f-hm","humanMoments","e.g. Mortgage hardship conversations; major insurance claims")),
+    makeField("Priority Channel Investments","Channel investments with greatest strategic impact",makeTA("f-ci","channelInvestments","e.g. Public API gateway; agent-compatible product catalogue"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+function buildStep5(){
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeGrid2(
+    makeField("Core Capabilities","Strongest operational and technical capabilities today",makeTA("f-core","coreCapabilities","e.g. Strong underwriting; real-time payment rails; large customer data asset")),
+    makeField("Capability Gaps","Where critical capability is absent relative to the agentic shift",makeTA("f-gaps","capabilityGaps","e.g. No real-time decisioning; limited AI/ML maturity; fragmented data"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Data Assets","Key data assets and their current state of use",makeTA("f-da","dataAssets","e.g. 8M customer records; transaction history; limited 360° view")),
+    makeField("Technology Stack","Current architecture and any transformation programs underway",makeTA("f-ts","techStack","e.g. Core banking on legacy mainframe; partial cloud migration underway"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Operating Constraints","Constraints shaping what the organisation can do",makeTA("f-oc","operatingConstraints","e.g. APRA cloud policy; cost reduction limiting investment")),
+    makeField("Transformation Readiness","Current change capacity and strategic appetite for transformation",makeTA("f-tr","transformationReadiness","e.g. Moderate; CEO mandate for AI but limited execution capacity"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+function buildStep6(){
+  const wrap = document.createElement("div");
+  wrap.appendChild(makeGrid2(
+    makeField("Key Revenue Drivers","Primary sources of revenue and how they are generated",makeTA("f-rd","revenueDrivers","e.g. Net interest margin on lending; insurance premiums; wealth fees")),
+    makeField("Cost Structure","Primary cost drivers and where operational leverage exists",makeTA("f-cost","costStructure","e.g. Branch network (40% of cost base); call centre; claims processing"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Value at Risk from Agentic Shift","Where existing revenue is most exposed to agentic disruption",makeTA("f-var","valueAtRisk","e.g. Mortgage margin compression from agent-driven switching")),
+    makeField("Agentic Value Opportunity","Where agentic capabilities could create new value",makeTA("f-opp","agentEconomics","e.g. Reduced servicing cost; new fee income from agent APIs"))
+  ));
+  wrap.appendChild(makeGrid2(
+    makeField("Business Model Options","Strategic choices for participating in an agentic economy",makeTA("f-bmo","businessModelOptions","e.g. Defend owned channels; become agent partner; build internal capability")),
+    makeField("ROI Hypothesis","Where investment in agentic capability will generate measurable return",makeTA("f-roi","roiHypothesis","e.g. 20% servicing cost reduction; 15% improvement in retention"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+function buildStep7(){
+  const wrap = document.createElement("div");
+  // Score display
+  const scoreDiv = document.createElement("div");
+  scoreDiv.className="readiness-display";
+  const avg = calcReadiness();
+  scoreDiv.innerHTML = `<div class="readiness-score" id="readiness-score-display">${avg}</div><div style="font-size:13px;color:#666;margin-top:4px">Overall Readiness Score / 5</div><div class="score-bar-wrap"><div class="score-bar-fill" id="readiness-bar" style="width:${(avg/5)*100}%"></div></div>`;
+  wrap.appendChild(scoreDiv);
+  const sliders = document.createElement("div");
+  sliders.style.cssText="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem";
+  sliders.appendChild(makeReadinessSlider("readinessData","Data Readiness","How ready is the data infrastructure to support agentic decisioning?"));
+  sliders.appendChild(makeReadinessSlider("readinessTech","Technology Readiness","How mature is the tech stack for agentic integration and API exposure?"));
+  sliders.appendChild(makeReadinessSlider("readinessOrg","Organisational Readiness","How prepared is the organisation culturally for agentic transformation?"));
+  sliders.appendChild(makeReadinessSlider("readinessStrategy","Strategic Readiness","How clear and committed is leadership to an agentic strategy?"));
+  sliders.appendChild(makeReadinessSlider("readinessCustomer","Customer Readiness","How ready are customers to engage with or delegate to AI agents?"));
+  wrap.appendChild(sliders);
+  wrap.appendChild(makeGrid2(
+    makeField("Key Assumptions","List assumptions underpinning this strategy that require validation",makeTA("f-ka","keyAssumptions","e.g. Customers will delegate routine decisions to agents within 3 years")),
+    makeField("Open Questions","Key questions that remain unanswered and require discovery",makeTA("f-oq","openQuestions","e.g. Which agent platforms will customers prefer?"))
+  ));
+  wrap.appendChild(makeFileDrop());
+  return wrap;
+}
+
+function calcReadiness(){
+  const keys = ["readinessData","readinessTech","readinessOrg","readinessStrategy","readinessCustomer"];
+  const avg = keys.reduce((s,k)=>s+(+form[k]||3),0)/keys.length;
+  return avg.toFixed(1);
+}
+function updateReadinessScore(){
+  const avg = calcReadiness();
+  const el = document.getElementById("readiness-score-display");
+  const bar = document.getElementById("readiness-bar");
+  if(el) el.textContent = avg;
+  if(bar) bar.style.width = (avg/5)*100+"%";
+}
+
+const STEP_BUILDERS = [buildStep1,buildStep2,buildStep3,buildStep4,buildStep5,buildStep6,buildStep7];
+
+function renderStep(){
+  const panels = document.getElementById("step-panels");
+  panels.innerHTML="";
+  const content = STEP_BUILDERS[currentStep-1]();
+  const wrap = document.createElement("div");
+  wrap.className="card-glow";
+  wrap.style.marginBottom="1rem";
+  wrap.appendChild(content);
+  panels.appendChild(wrap);
+  // Update header
+  const meta = STEP_META[currentStep-1];
+  document.getElementById("step-icon").textContent = meta.icon;
+  document.getElementById("step-meta").textContent = `Step ${currentStep} of 7`;
+  document.getElementById("step-title").textContent = meta.title;
+  document.getElementById("prog").style.width = (currentStep/7*100)+"%";
+  // Update dots
+  for(let i=1;i<=7;i++){
+    const dot = document.getElementById("dot-"+i);
+    const btn = document.querySelector(`[data-step="${i}"]`);
+    dot.className = "step-dot" + (i===currentStep?" active":i<currentStep?" done":"");
+    dot.textContent = i<currentStep?"✓":i;
+    btn.className = "step-btn" + (i===currentStep?" active":i<currentStep?" done":"");
+  }
+  // Nav buttons
+  const bBack = document.getElementById("btn-back");
+  const bBack2 = document.getElementById("btn-back2");
+  const bNext = document.getElementById("btn-next");
+  const bNext2 = document.getElementById("btn-next2");
+  bBack.style.opacity = currentStep===1?".4":"1";
+  bBack.disabled = currentStep===1;
+  bBack2.style.opacity = currentStep===1?".4":"1";
+  bBack2.disabled = currentStep===1;
+  if(currentStep===7){
+    bNext.textContent="Generate Strategy ↗";
+    bNext.onclick = openPreview;
+    bNext2.textContent="Generate Strategy ↗";
+    bNext2.onclick = openPreview;
+  } else {
+    const nextName = STEP_META[currentStep]?.title||"Next";
+    bNext.textContent="Next →";
+    bNext.onclick = nextStep;
+    bNext2.textContent=`Continue to ${nextName} →`;
+    bNext2.onclick = nextStep;
+  }
+}
+
+function goStep(n){ currentStep=n; saveState(); renderStep(); }
+function nextStep(){ if(currentStep<7){ currentStep++; saveState(); renderStep(); } }
+function prevStep(){ if(currentStep>1){ currentStep--; saveState(); renderStep(); } }
+
+function autoFill(name){
+  const m = BRAND_MAP[name];
+  if(!m) return;
+  if(!form.industry){ form.industry=m.industry; const el=document.getElementById("f-industry"); if(el){el.value=m.industry;} }
+  if(!form.geography){ form.geography=m.geo; const el=document.getElementById("f-geography"); if(el){el.value=m.geo;} }
+  if(!form.brandPositioning){ form.brandPositioning=m.pos; const el=document.getElementById("f-brandPos"); if(el){el.value=m.pos;} }
+  if(!form.competitiveSet){ form.competitiveSet=m.comp; const el=document.getElementById("f-compSet"); if(el){el.value=m.comp;} }
+  saveState();
+}
+
+// ── STRATEGY DATA ──────────────────────────────────────────────────────────
+function buildStrategy(){
+  const c = form.clientName||"the client organisation";
+  const ind = form.industry||"the relevant sector";
+  const geo = form.geography||"their market";
+  const avg = calcReadiness();
+  return {
+    client: c,
+    execSummary:{
+      whatChanges:`When customers in the ${ind} sector delegate decisions to AI agents, the fundamental dynamic shifts from brand-to-customer relationships to brand-to-agent-to-customer architectures. ${c}'s products and services will increasingly be discovered, evaluated, and transacted by autonomous agents acting on behalf of customers. Trust, discoverability, and machine-readability of propositions become the new competitive battleground.`,
+      atStake:`For ${c}, operating in ${geo} ${ind}, the stakes are material. The organisation faces margin compression from agent-driven comparison and switching, disintermediation risk in key customer journeys, and potential loss of the direct customer relationship that underpins long-term loyalty and cross-sell economics.`,
+      topActions:[
+        `Establish an Agentic Customer Centre of Excellence within 90 days to coordinate strategy, monitor agent ecosystem developments, and own the 12-month delivery roadmap`,
+        `Audit and redesign core propositions — particularly ${(form.currentPropositions||"key products").split(";")[0]} — for machine-readability, comparability, and agent discoverability`,
+        `Build or partner to expose public product APIs that enable agent platforms to access, compare, and transact ${c} products`,
+        `Identify and protect the 2–3 human moments that drive trust and loyalty — ensure these remain high-quality human-led interactions`,
+        `Run a customer research sprint to understand willingness to delegate and trust posture across key segments`,
+      ]
+    },
+    vision:{
+      visionStatement:`${c} will win in the agentic economy by becoming the most trusted, most discoverable, and most agent-compatible organisation in ${ind} across ${geo} — delivering value whether customers engage directly or through AI agents.`,
+      posture: +avg>=4?"Lead":+avg>=3?"Adapt & Build":"Defend & Adapt",
+      postureRationale:`With an overall readiness score of ${avg}/5, ${c} is positioned to ${+avg>=4?"take a leadership position and actively shape how the agentic economy develops in this category":+avg>=3?"move with urgency to adapt core propositions and build foundational agentic capability before the window closes":"prioritise defence of existing revenue and customer relationships while building the foundation for future agentic participation"}.`,
+      disruptiveForces:[
+        `Rise of AI-native consumer and business platforms that will act as intermediaries between ${c} and its customers`,
+        `Structural shift in discovery — from Google/App Store to agent-mediated recommendations — fundamentally changing how ${c}'s propositions are found`,
+        `Regulatory evolution around agent-executed transactions, consent frameworks, and liability, particularly relevant in ${ind}`,
+        `Competitive pressure from digital-first challengers who are building agent-compatible products from the ground up`,
+        `Customer expectation creep — as agent capabilities mature in adjacent categories, tolerance for friction in ${ind} will decline rapidly`,
+      ],
+      personas:[
+        {name:"The Efficiency Maximiser",goal:"Minimise time and cognitive load on routine decisions",triggers:"High task frequency; clear comparison criteria; low emotional stakes",risk:"Medium — trusts agents for routine optimisation; requires oversight on significant commitments",switching:"Highly likely to switch if an agent identifies a materially better option with low friction"},
+        {name:"The Trust-First Delegator",goal:"Access expert guidance without navigating complexity themselves",triggers:"Complexity; time pressure; trusted agent platform endorsement",risk:"Low — will delegate only to agents explicitly endorsed by trusted institutions",switching:"Moderate — brand trust creates inertia but will switch if agent identifies clear value gap"},
+        {name:"The Hybrid Pragmatist",goal:"Use agents for research and shortlisting; retain human involvement for final decisions",triggers:"Milestone moments — major purchases, renewals, life events",risk:"Low for full delegation; high for agent-assisted research",switching:"Moderate — values agent efficiency but maintains human validation step"},
+        {name:"The Sceptical Traditionalist",goal:"Maintain control and direct relationship with service providers",triggers:"May delegate only when trusted providers explicitly enable it",risk:"Very low — high concern about data privacy, errors, and accountability",switching:"Low — strong brand loyalty; agent interaction must be provider-initiated"},
+      ],
+      heatmap:[
+        {journey:"Product comparison & shortlisting",agent:"High",human:"Low",hybrid:"Agent shortlists, human selects"},
+        {journey:(form.keyJourneys||"Renewal & switching").split(";")[0].trim(),agent:"High",human:"Low",hybrid:"Agent triggers, human confirms"},
+        {journey:"Routine servicing & queries",agent:"Very High",human:"Minimal",hybrid:"Escalation for complaints"},
+        {journey:"Complex advice & major commitments",agent:"Low",human:"High",hybrid:"Agent prepares, human advises"},
+        {journey:(form.humanMoments||"Crisis & hardship moments").split(";")[0].trim(),agent:"Very Low",human:"Critical",hybrid:"Agent supports, human leads"},
+      ]
+    },
+    propositions:{
+      risks:[
+        `${form.propositionGaps||"Current propositions"} — complex terms and opaque pricing make machine-comparison difficult`,
+        `Lack of public APIs means agents cannot access or transact ${c} products at the moment of customer decision`,
+        `Loyalty and bundling benefits that depend on direct customer engagement may be invisible to agents optimising on a single dimension`,
+        `Secondary products are at high risk of commoditisation through agent-driven comparison`,
+      ],
+      principles:[
+        "Machine-readable: All pricing, terms, and eligibility criteria must be structured for agent consumption",
+        "Comparable by design: Propositions must be structured to enable fair, accurate comparison across competitors",
+        "Trust-signalled: Build explicit trust signals that agents can surface to customers",
+        "Actionable by API: Core transactions must be executable through secure, public APIs",
+        "Personalisation-ready: Propositions must support dynamic personalisation based on agent-provided context",
+      ],
+      newProps:[
+        {name:"Agent-First Product Tier",persona:"Efficiency Maximiser",value:"Optimised for machine comparison — transparent pricing, clear eligibility, instant decisioning API",diff:"First in category to publish a dedicated agent-optimised product catalogue",split:"90% agent-transacted / 10% human confirmation for large commitments"},
+        {name:(form.newPropositions||"Proactive Agentic Alert Service").split(";")[0].trim(),persona:"Trust-First Delegator",value:`Push-based proposition where ${c}'s own agent proactively identifies customer optimisation opportunities`,diff:`Inverts the agent dynamic — ${c} becomes the agent rather than waiting to be selected`,split:"70% automated / 30% customer review and confirmation"},
+        {name:"Hybrid Advice Companion",persona:"Hybrid Pragmatist",value:"Agent-assisted research and recommendation with seamless human handoff for complex decisions",diff:"Best-in-class human+AI experience that neither pure digital nor traditional human-only can match",split:"60% agent-led / 40% human-advised"},
+      ]
+    },
+    channels:{
+      agentDominated:["Product discovery and comparison — agents will increasingly own the top of the funnel",`Routine enquiries currently handled by ${(form.currentChannels||"call centre").split(";")[0].trim()} — will shift to API/agent resolution`,"Renewal and policy/account management — high automation potential","Quote generation and eligibility checking"],
+      humanRetained:[(form.humanMoments||"High-stakes financial advice").split(";")[0].trim(),(form.humanMoments||";Complaint and hardship resolution").split(";")[1]?.trim()||"Complaint and hardship resolution","Relationship management for high-value customers","Complex or bespoke product structuring"],
+      increasing:["Public API layer","Agent platform partnerships","Embedded finance integrations","Conversational AI for routine servicing"],
+      atRisk:["Inbound call centre volume","Manual comparison/quote flows","Physical branch for transactional services"],
+      newRequired:["Agent ecosystem participation framework","Webhook and event-driven notification infrastructure","Agent-specific trust and consent layer"],
+      investments:[`1. Public Product API Gateway — enables agent platforms to access, compare, and transact ${c} products`,`2. Agent-Compatible Product Catalogue — restructure proposition data for machine consumption`,`3. Real-Time Decisioning Engine — enables instant eligibility responses required by agents`,`4. Human Escalation Framework — design the moments where agent-to-human handoff delivers greatest value`,`5. ${(form.channelInvestments||"Digital identity and consent infrastructure").split(";")[0].trim()}`]
+    },
+    opModel:{
+      newCaps:["Agentic product and API management function — owns the agent-facing product catalogue","AI/ML decisioning capability — real-time personalisation and pricing for agent requests","Agent ecosystem partnerships team — manages agent platform relationships","Agentic experience design — specialist capability for agent-mediated interaction design","Regulatory and trust governance for agentic operations"],
+      uplift:[`${(form.coreCapabilities||"Core product capability").split(";")[0].trim()} — requires API-enablement and machine-readable structuring`,`Data platform — ${(form.dataAssets||"customer data assets").split(";")[0].trim()} require real-time access layer`,`${(form.techStack||"Core technology platform").split(";")[0].trim()} — requires event-driven architecture and API gateway`,"Customer identity and consent management — must extend to cover agent-acted-on-behalf permissions"],
+      buildNow:["API gateway and product catalogue — the foundation of all agentic participation","Agentic CoE — governance, strategy, and coordination function","Agent ecosystem monitoring — track platform developments and competitive moves"],
+      experiment:[`Proof-of-concept for ${c}'s own agent capability — proactive customer notifications`,"Agent platform partnership pilots — test integration economics and conversion","Customer research on delegation willingness and trust thresholds"],
+      canWait:["Full agent-executed transaction capability — dependent on regulatory clarity","Proprietary agent platform build — partnership first, build later once market structure is clearer"]
+    },
+    valueCapture:{
+      risks:[`Margin compression in ${(form.revenueDrivers||"core revenue streams").split(";")[0].trim()} — agent-driven comparison will intensify rate competition`,"Customer acquisition cost increase — agents create a new intermediary layer","Cross-sell and relationship revenue — agents optimising on single dimensions may undermine bundling economics",form.valueAtRisk||"Fee income at risk as agents automate decisions previously requiring human advice"],
+      opps:["API and data monetisation — new revenue from agent platform partnerships and data-as-a-service models",`Servicing cost reduction — ${form.agentEconomics||"automation of routine interactions could reduce cost-to-serve by 15–30%"}`,"Retention improvement — proactive agentic capability enables surfacing value before customers seek alternatives",`New customer acquisition — ${c}'s agent-compatible products become preferred by agent platforms`],
+      scenarios:{
+        low:`Low agent adoption (20–30% of decisions agent-influenced by 2027): Modest margin pressure; early API investment delivers outsized positioning advantage; ROI primarily from servicing cost reduction`,
+        medium:`Medium adoption (40–60% agent-influenced): Significant shift in acquisition economics; organisations without agent infrastructure lose material market share; ${c} with foundational investment captures disproportionate agent-referred volume`,
+        high:`High adoption (60%+ agent-influenced): Category structure fundamentally changes; product discoverability becomes the primary competitive battleground; ${c}'s strategic posture determines whether it leads, follows, or is disintermediated`
+      },
+      bmChoice:form.businessModelOptions||`${c} should pursue a hybrid model: defend owned channels for high-trust, high-value customer moments while actively building agent compatibility for routine and commodity interactions.`
+    },
+    roadmap:{
+      now:["Establish Agentic Customer CoE with executive sponsorship","Complete proposition audit — identify agent-readiness gaps across core product portfolio","Map and prioritise 3–5 customer journeys for agentic redesign","Begin API gateway scoping and vendor evaluation","Commission customer research on delegation willingness and trust","Engage regulatory affairs team on agentic transaction frameworks"],
+      next:[`Launch MVP product API — expose comparison data and eligibility checking`,`Redesign 2–3 core propositions for agent discoverability and machine-readability`,"Pilot agent platform partnership — test integration, measure conversion and economics","Build agent experience design playbook","Deploy real-time decisioning capability for agent-speed responses",`Resolve ${(form.capabilityGaps||"key capability gap").split(";")[0].trim()} through build or acquisition`],
+      later:["Scale API platform to full product coverage with transactional capability",`Launch ${c}-owned proactive agent service for priority customer segments`,"Formalise agent ecosystem partnership framework — commercial terms, data agreements, trust standards","Embed agentic KPIs into business performance framework","Evaluate proprietary agent platform build vs. continued partnership based on market structure evidence","Begin advanced capability build for the 2026+ agentic landscape"]
+    },
+    assumptions:{
+      list:["Customer willingness to delegate in this category will follow the pattern of early adopters in adjacent categories","Regulatory frameworks will evolve to permit and govern agent-executed transactions within 12–18 months",form.keyAssumptions||"The pace of AI agent platform adoption will be rapid enough to justify investment in the 12–24 month horizon","Data assets are sufficient to support personalised agentic propositions with reasonable investment","Agent platforms will operate on a partnership model rather than a pure aggregation/commoditisation model"],
+      risks:[`Regulatory delay or restriction on agent-executed transactions in ${geo}`,"Faster-than-expected competitor investment creating a first-mover disadvantage","Customer reluctance to delegate — cultural or trust barriers underestimated",`Technical debt in ${(form.techStack||"legacy systems").split(";")[0].trim()} creating longer API delivery timelines than planned`,"Agent platform consolidation reducing negotiating leverage"],
+      questions:[form.openQuestions||"Which agent platforms will achieve dominant market share, and on what timeline?","What regulatory position will be taken on agent-executed transactions and liability?",`At what commercial terms will agent platforms integrate with ${c}'s products?`,"Which customer segments will delegate first, and what are the trust triggers in this category?",`How will ${c}'s intermediary relationships evolve as agent platforms take a larger share of origination?`]
+    },
+    workshopPrompts:[
+      `Which of ${c}'s current revenue streams is most exposed to agent-driven disruption in the next 24 months, and why?`,
+      `If a leading agent platform offered to integrate ${c}'s products tomorrow — what would need to be true about commercial terms and data arrangements for you to say yes?`,
+      `Where in the customer lifecycle does human interaction create irreplaceable value that agents cannot replicate?`,
+      `What would a 'defend the relationship' strategy look like for ${c} — and what investments would it require?`,
+      `If ${c} were starting from scratch as a pure agentic business, what would it look like?`,
+      `Which of ${c}'s capabilities — data, technology, brand, distribution — is the strongest foundation for building an agentic advantage?`,
+      `What is the minimum viable agentic proposition ${c} could put to market in 90 days to begin learning?`,
+      `How should ${c} think about pricing in a world where agents optimise aggressively for customer value?`
+    ]
+  };
+}
+
+// ── MODAL RENDERING ────────────────────────────────────────────────────────
+const SECTIONS = ["Executive Summary","Vision & Ambition","Propositions","Channels","Operating Model","Value Capture","Roadmap","Assumptions","Workshop Prompts"];
+
+function openPreview(){
+  strategyData = buildStrategy();
+  document.getElementById("modal-subtitle").textContent = `${strategyData.client} · Agentic Customer Strategy`;
+  document.getElementById("modal-overlay").style.display="flex";
+  tocGo(0);
+}
+function closePreview(){ document.getElementById("modal-overlay").style.display="none"; }
+function tocGo(n){
+  modalSection=n;
+  document.querySelectorAll(".toc-btn").forEach((b,i)=>b.classList.toggle("active",i===n));
+  document.getElementById("modal-page-label").textContent=`Section ${n+1} of 9`;
+  renderModalSection(n);
+}
+function tocPrev(){ if(modalSection>0) tocGo(modalSection-1); }
+function tocNext(){ if(modalSection<8) tocGo(modalSection+1); }
+
+function h2(t){ return `<div class="sec-heading">${t}</div>`; }
+function h3(t){ return `<div class="sub-heading">${t}</div>`; }
+function para(t){ return `<div class="sec-text">${t||""}</div>`; }
+function list(items){ return `<ul class="sec-list">${(items||[]).map(i=>`<li>${i}</li>`).join("")}</ul>`; }
+
+function renderModalSection(n){
+  const s = strategyData;
+  const mc = document.getElementById("modal-section-content");
+  let html = "";
+  switch(n){
+    case 0:
+      html = h2("1. Executive Summary") +
+        h3("What fundamentally changes") + para(s.execSummary.whatChanges) +
+        h3("What is at stake") + para(s.execSummary.atStake) +
+        h3("Top 5 No-Regret Actions (12–24 months)") + list(s.execSummary.topActions);
+      break;
+    case 1:
+      html = h2("2. Agentic Customer Vision & Strategic Ambition") +
+        h3("Vision Statement") + para(s.vision.visionStatement) +
+        h3(`Strategic Posture: ${s.vision.posture}`) + para(s.vision.postureRationale) +
+        h3("Key Disruptive Forces") + list(s.vision.disruptiveForces) +
+        h3("Agentic Customer Personas") +
+        s.vision.personas.map(p=>`<div class="persona-card"><div class="persona-name">${p.name}</div><div class="persona-row"><span class="persona-key">Goal:</span><span class="persona-val">${p.goal}</span></div><div class="persona-row"><span class="persona-key">Triggers:</span><span class="persona-val">${p.triggers}</span></div><div class="persona-row"><span class="persona-key">Risk Tolerance:</span><span class="persona-val">${p.risk}</span></div><div class="persona-row"><span class="persona-key">Switching:</span><span class="persona-val">${p.switching}</span></div></div>`).join("") +
+        h3("Delegation Heatmap") +
+        `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>${["Journey","Agent-Likely","Human-Led","Hybrid"].map(h=>`<th style="padding:7px 10px;background:#1E2E15;color:var(--green);text-align:left;font-weight:600">${h}</th>`).join("")}</tr></thead><tbody>${s.vision.heatmap.map(r=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 10px;color:var(--muted)">${r.journey}</td><td style="padding:7px 10px;color:${r.agent==="Very High"||r.agent==="High"?"var(--green)":"var(--muted)"}">${r.agent}</td><td style="padding:7px 10px;color:${r.human==="Critical"||r.human==="High"?"#F59E0B":"var(--muted)"}">${r.human}</td><td style="padding:7px 10px;color:var(--muted)">${r.hybrid}</td></tr>`).join("")}</tbody></table></div>`;
+      break;
+    case 2:
+      html = h2("3. Propositions & Experience") +
+        h3("Proposition Exposure Risks") + list(s.propositions.risks) +
+        h3("Agent-Ready Design Principles") + list(s.propositions.principles) +
+        h3("New / Adapted Agentic Propositions") +
+        s.propositions.newProps.map(p=>`<div class="persona-card"><div class="persona-name">${p.name}</div><div class="persona-row"><span class="persona-key">Target Persona:</span><span class="persona-val">${p.persona}</span></div><div class="persona-row"><span class="persona-key">Value Logic:</span><span class="persona-val">${p.value}</span></div><div class="persona-row"><span class="persona-key">Differentiation:</span><span class="persona-val">${p.diff}</span></div><div class="persona-row"><span class="persona-key">Experience Split:</span><span class="persona-val">${p.split}</span></div></div>`).join("");
+      break;
+    case 3:
+      html = h2("4. Channels & Interactions") +
+        h3("Agent-Dominated Interactions") + list(s.channels.agentDominated) +
+        h3("Human-Retained Interactions") + list(s.channels.humanRetained) +
+        `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:.75rem 0">`+
+        `<div>${h3("Channels Increasing")}${list(s.channels.increasing)}</div>`+
+        `<div>${h3("Channels at Risk")}${list(s.channels.atRisk)}</div>`+
+        `</div>`+
+        h3("New Channels Required") + list(s.channels.newRequired) +
+        h3("Priority Channel Investments") + list(s.channels.investments);
+      break;
+    case 4:
+      html = h2("5. Operating Model & Capabilities") +
+        h3("New Capabilities Required") + list(s.opModel.newCaps) +
+        h3("Existing Capabilities Requiring Uplift") + list(s.opModel.uplift) +
+        h3("Build Now") + list(s.opModel.buildNow) +
+        h3("Experiment With") + list(s.opModel.experiment) +
+        h3("Can Wait") + list(s.opModel.canWait);
+      break;
+    case 5:
+      html = h2("6. Business Model & Value Capture") +
+        h3("Value at Risk") + list(s.valueCapture.risks) +
+        h3("Agentic Value Opportunities") + list(s.valueCapture.opps) +
+        h3("Scenario View") +
+        ["low","medium","high"].map(sc=>`<div class="persona-card" style="border-top:3px solid ${sc==="high"?"var(--green)":sc==="medium"?"#F59E0B":"#666"}"><div class="persona-name" style="color:${sc==="high"?"var(--green)":sc==="medium"?"#F59E0B":"#888"};text-transform:capitalize">${sc} Adoption Scenario</div><div class="sec-text" style="margin:0">${s.valueCapture.scenarios[sc]}</div></div>`).join("") +
+        h3("Strategic Business Model Choice") + para(s.valueCapture.bmChoice);
+      break;
+    case 6:
+      html = h2("7. Integrated Roadmap") +
+        `<div class="roadmap-grid">`+
+        `<div class="roadmap-col" style="border-top:3px solid var(--green)"><div style="font-weight:800;color:var(--green);font-size:12px;margin-bottom:2px">NOW</div><div style="font-size:10px;color:#555;margin-bottom:10px">0–3 months</div>${list(s.roadmap.now)}</div>`+
+        `<div class="roadmap-col" style="border-top:3px solid #F59E0B"><div style="font-weight:800;color:#F59E0B;font-size:12px;margin-bottom:2px">NEXT</div><div style="font-size:10px;color:#555;margin-bottom:10px">3–12 months</div>${list(s.roadmap.next)}</div>`+
+        `<div class="roadmap-col" style="border-top:3px solid #3B82F6"><div style="font-weight:800;color:#3B82F6;font-size:12px;margin-bottom:2px">LATER</div><div style="font-size:10px;color:#555;margin-bottom:10px">12–24 months</div>${list(s.roadmap.later)}</div>`+
+        `</div>`;
+      break;
+    case 7:
+      html = h2("8. Assumptions, Risks & Open Questions") +
+        h3("Key Assumptions") + list(s.assumptions.list) +
+        h3("Risks to Monitor") + list(s.assumptions.risks) +
+        h3("Open Questions") + list(s.assumptions.questions);
+      break;
+    case 8:
+      html = h2("9. Workshop & Sprint Prompts") +
+        `<p style="font-size:12px;color:#555;margin-bottom:12px">Key questions to validate and deepen the strategy with executives</p>` +
+        list(s.workshopPrompts);
+      break;
+  }
+  mc.innerHTML = html;
+}
+
+function toggleEdit(){
+  editMode = !editMode;
+  document.getElementById("btn-edit-toggle").textContent = editMode ? "✓ Done" : "✏ Edit";
+  // Re-render with editable fields (basic implementation)
+  renderModalSection(modalSection);
+  if(editMode){
+    document.getElementById("modal-section-content").querySelectorAll(".sec-text,.sec-list li").forEach(el=>{
+      el.contentEditable = "true";
+      el.style.outline = "1px solid rgba(134,188,37,.3)";
+      el.style.borderRadius = "4px";
+      el.style.padding = "2px 4px";
+    });
+  }
+}
+
+// ── EXPORT ─────────────────────────────────────────────────────────────────
+function exportDoc(type){
+  const s = strategyData || buildStrategy();
+  const client = s.client;
+  const now = new Date().toLocaleDateString("en-AU");
+
+  let content = "";
+  const line = n => "─".repeat(n);
+  if(type==="txt"){
+    content = `AGENTIC CUSTOMER STRATEGY\n${line(50)}\nClient: ${client}\nGenerated: ${now}\n${line(50)}\n\n`;
+    content += `1. EXECUTIVE SUMMARY\n${line(30)}\n\nWHAT FUNDAMENTALLY CHANGES\n${s.execSummary.whatChanges}\n\nWHAT IS AT STAKE\n${s.execSummary.atStake}\n\nTOP 5 NO-REGRET ACTIONS\n${s.execSummary.topActions.map((a,i)=>`${i+1}. ${a}`).join("\n")}\n\n`;
+    content += `2. AGENTIC CUSTOMER VISION\n${line(30)}\n\nVISION\n${s.vision.visionStatement}\n\nSTRATEGIC POSTURE: ${s.vision.posture}\n${s.vision.postureRationale}\n\nDISRUPTIVE FORCES\n${s.vision.disruptiveForces.map(f=>`• ${f}`).join("\n")}\n\nPERSONAS\n${s.vision.personas.map(p=>`${p.name}\n  Goal: ${p.goal}\n  Triggers: ${p.triggers}\n  Risk: ${p.risk}\n  Switching: ${p.switching}`).join("\n\n")}\n\n`;
+    content += `3. PROPOSITIONS & EXPERIENCE\n${line(30)}\n\nRISKS\n${s.propositions.risks.map(r=>`• ${r}`).join("\n")}\n\nDESIGN PRINCIPLES\n${s.propositions.principles.map(p=>`• ${p}`).join("\n")}\n\nNEW PROPOSITIONS\n${s.propositions.newProps.map(p=>`${p.name}\n  Persona: ${p.persona}\n  Value: ${p.value}\n  Differentiation: ${p.diff}\n  Split: ${p.split}`).join("\n\n")}\n\n`;
+    content += `4. CHANNELS & INTERACTIONS\n${line(30)}\n\nAGENT-DOMINATED\n${s.channels.agentDominated.map(c=>`• ${c}`).join("\n")}\n\nHUMAN-RETAINED\n${s.channels.humanRetained.map(c=>`• ${c}`).join("\n")}\n\nINVESTMENTS\n${s.channels.investments.map(i=>`• ${i}`).join("\n")}\n\n`;
+    content += `5. OPERATING MODEL\n${line(30)}\n\nNEW CAPABILITIES\n${s.opModel.newCaps.map(c=>`• ${c}`).join("\n")}\n\nBUILD NOW\n${s.opModel.buildNow.map(c=>`• ${c}`).join("\n")}\n\nEXPERIMENT\n${s.opModel.experiment.map(c=>`• ${c}`).join("\n")}\n\n`;
+    content += `6. VALUE CAPTURE\n${line(30)}\n\nVALUE AT RISK\n${s.valueCapture.risks.map(r=>`• ${r}`).join("\n")}\n\nOPPORTUNITIES\n${s.valueCapture.opps.map(o=>`• ${o}`).join("\n")}\n\nSCENARIOS\nLow: ${s.valueCapture.scenarios.low}\nMedium: ${s.valueCapture.scenarios.medium}\nHigh: ${s.valueCapture.scenarios.high}\n\n`;
+    content += `7. INTEGRATED ROADMAP\n${line(30)}\n\nNOW (0–3 months)\n${s.roadmap.now.map(r=>`• ${r}`).join("\n")}\n\nNEXT (3–12 months)\n${s.roadmap.next.map(r=>`• ${r}`).join("\n")}\n\nLATER (12–24 months)\n${s.roadmap.later.map(r=>`• ${r}`).join("\n")}\n\n`;
+    content += `8. ASSUMPTIONS, RISKS & OPEN QUESTIONS\n${line(30)}\n\nASSUMPTIONS\n${s.assumptions.list.map(a=>`• ${a}`).join("\n")}\n\nRISKS\n${s.assumptions.risks.map(r=>`• ${r}`).join("\n")}\n\nOPEN QUESTIONS\n${s.assumptions.questions.map(q=>`• ${q}`).join("\n")}\n\n`;
+    content += `9. WORKSHOP PROMPTS\n${line(30)}\n\n${s.workshopPrompts.map((p,i)=>`Q${i+1}: ${p}`).join("\n\n")}\n\n${line(50)}\nPrepared by: Agentic Strategy Agent\n© Deloitte ${new Date().getFullYear()}\n`;
+  } else {
+    content = `AGENTIC CUSTOMER STRATEGY — PRESENTATION DECK\n${client} | ${now}\n\n`;
+    content += `SLIDE 1 — TITLE\nAgentic Customer Strategy | ${client}\nPrepared by Deloitte\n\n`;
+    content += `SLIDE 2 — STRATEGIC POSTURE\n${s.vision.posture}\n${s.vision.visionStatement}\n\n`;
+    content += `SLIDE 3 — EXECUTIVE SUMMARY\n${s.execSummary.topActions.map((a,i)=>`${i+1}. ${a}`).join("\n")}\n\n`;
+    content += `SLIDE 4 — DISRUPTIVE FORCES\n${s.vision.disruptiveForces.map(f=>`• ${f}`).join("\n")}\n\n`;
+    content += `SLIDE 5 — AGENTIC PERSONAS\n${s.vision.personas.map(p=>`${p.name}: ${p.goal}`).join("\n")}\n\n`;
+    content += `SLIDE 6 — DELEGATION HEATMAP\n${s.vision.heatmap.map(r=>`${r.journey} | Agent: ${r.agent} | Human: ${r.human}`).join("\n")}\n\n`;
+    content += `SLIDE 7 — PROPOSITION RISKS\n${s.propositions.risks.slice(0,3).map(r=>`• ${r}`).join("\n")}\n\n`;
+    content += `SLIDE 8 — AGENT-READY PRINCIPLES\n${s.propositions.principles.map(p=>`• ${p}`).join("\n")}\n\n`;
+    content += `SLIDE 9 — NEW PROPOSITIONS\n${s.propositions.newProps.map(p=>`${p.name}: ${p.value}`).join("\n")}\n\n`;
+    content += `SLIDE 10 — CHANNEL SHIFT\nAgent-Dominated: ${s.channels.agentDominated.slice(0,2).join(" | ")}\nHuman-Retained: ${s.channels.humanRetained.slice(0,2).join(" | ")}\n\n`;
+    content += `SLIDE 11 — OPERATING MODEL\n${s.opModel.newCaps.slice(0,3).map(c=>`• ${c}`).join("\n")}\n\n`;
+    content += `SLIDE 12 — VALUE AT RISK & OPPORTUNITY\n${s.valueCapture.risks.slice(0,2).map(r=>`• ${r}`).join("\n")}\n${s.valueCapture.opps.slice(0,2).map(o=>`+ ${o}`).join("\n")}\n\n`;
+    content += `SLIDE 13 — ROADMAP\nNOW: ${s.roadmap.now.slice(0,3).join(" | ")}\nNEXT: ${s.roadmap.next.slice(0,3).join(" | ")}\nLATER: ${s.roadmap.later.slice(0,3).join(" | ")}\n\n`;
+    content += `SLIDE 14 — ASSUMPTIONS & RISKS\n${s.assumptions.list.slice(0,3).map(a=>`• ${a}`).join("\n")}\n\n`;
+    content += `SLIDE 15 — WORKSHOP PROMPTS\n${s.workshopPrompts.slice(0,5).map((p,i)=>`Q${i+1}: ${p}`).join("\n")}\n`;
+  }
+
+  const blob = new Blob([content], {type:"text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url;
+  a.download=`${client}_Agentic_Strategy_${type==="txt"?"Word":"Deck"}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── SETTINGS ────────────────────────────────────────────────────────────────
+function openSettings(){ 
+  document.getElementById("settings-name").value=teammateName;
+  document.getElementById("settings-overlay").style.display="flex"; 
+}
+function closeSettings(){ document.getElementById("settings-overlay").style.display="none"; }
+function saveSettings(){
+  teammateName = document.getElementById("settings-name").value||"Sarah";
+  localStorage.setItem("asa_teammate2", teammateName);
+  document.getElementById("hero-name").textContent = teammateName;
+  closeSettings();
+}
+
+// ── NAVIGATION ──────────────────────────────────────────────────────────────
+function updateNavWizard(){
+  const nav = document.getElementById("nav-actions");
+  nav.innerHTML = `<button class="btn-ghost" onclick="openPreview()" style="font-size:12px">Preview Strategy ↗</button><button class="btn-secondary" onclick="goLanding()" style="font-size:12px;padding:7px 14px">← Home</button><button class="btn-ghost" onclick="openSettings()" style="font-size:12px">⚙ Settings</button>`;
+}
+function goLanding(){
+  document.getElementById("landing").style.display="flex";
+  document.getElementById("wizard").style.display="none";
+  localStorage.setItem("asa_page2","landing");
+  document.getElementById("nav-actions").innerHTML=`<button class="btn-ghost" id="btn-settings-nav">⚙ Settings</button>`;
+  document.getElementById("btn-settings-nav").onclick=openSettings;
+}
+function goWizard(){
+  document.getElementById("landing").style.display="none";
+  document.getElementById("wizard").style.display="flex";
+  localStorage.setItem("asa_page2","wizard");
+  updateNavWizard();
+  renderStep();
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+loadState();
+document.getElementById("btn-start").onclick = goWizard;
+document.getElementById("btn-settings-nav").onclick = openSettings;
+document.getElementById("hero-name").textContent = teammateName;
+if(document.getElementById("wizard").style.display==="flex") renderStep();
+</script>
+</body>
+</html>
