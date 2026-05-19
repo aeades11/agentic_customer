@@ -1204,7 +1204,7 @@ function App(){
   const[page,setPage]=useState("landing");
   const[step,setStep]=useState(1);
   const[form,setForm]=useState(()=>{try{return{...INITIAL_FORM,...(JSON.parse(localStorage.getItem("asa_form")||"{}"))}}catch{return INITIAL_FORM}});
-  const[teammateName,setTeammateName]=useState(()=>localStorage.getItem("asa_teammate")||"Sarah");
+  const[teammateName,setTeammateName]=useState(()=>localStorage.getItem("asa_teammate")||"Sarah"); const[visitorName,setVisitorName]=useState(()=>localStorage.getItem("asa_visitor_name")||"");
   const[showSettings,setShowSettings]=useState(false);
   const[showPreview,setShowPreview]=useState(false);
   const[strategy,setStrategy]=useState(null);
