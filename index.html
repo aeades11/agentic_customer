@@ -1052,7 +1052,7 @@ function PreviewModal({strategy,form,onClose,onExport}){
 }
 
 // ── SETTINGS MODAL ────────────────────────────────────────────────────────────
-function SettingsModal({teammateName,onSave,onClose}){
+function SettingsModal({teammateName,visitorName,onSave,onClose}){
   const[name,setName]=useState(teammateName);
   return(<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{...S.card,width:"380px",padding:"2rem"}}><h3 style={{margin:"0 0 1rem",fontSize:"16px"}}>Settings</h3><Field label="Teammate Name" hint="This name is used in the landing page greeting"><input style={S.input} value={name} onChange={e=>setName(e.target.value)}/></Field><div style={{display:"flex",gap:"12px",marginTop:"1.5rem"}}><button onClick={()=>onSave(name)} style={S.btnPrimary}>Save</button><button onClick={onClose} style={S.btnSecondary}>Cancel</button></div></div></div>);
 }
@@ -1071,7 +1071,7 @@ const DEFAULT_LANDING={
 };
 
 // ── LANDING PAGE ──────────────────────────────────────────────────────────────
-function LandingPage({onStart,teammateName}){
+function LandingPage({onStart,teammateName,visitorName}){
   const[editing,setEditing]=useState(false);
   const[copy,setCopy]=useState(()=>{
     try{const s=localStorage.getItem("asa_landing_copy");return s?JSON.parse(s):DEFAULT_LANDING;}catch{return DEFAULT_LANDING;}
@@ -1144,7 +1144,7 @@ function LandingPage({onStart,teammateName}){
               <textarea style={{...S.textarea,fontSize:"32px",fontWeight:"800",lineHeight:"1.15",letterSpacing:"-1px",textAlign:"center",minHeight:"120px",color:"#FFFFFF"}} value={d.headline} onChange={e=>updDraft(["headline"],e.target.value)}/>
            </div>
           :<h1 style={{fontSize:"clamp(28px,4vw,48px)",fontWeight:"800",lineHeight:"1.1",margin:"0 0 1.5rem",letterSpacing:"-1.5px"}}>
-              Hi <span style={{color:"#86BC25"}}>{teammateName}</span>, {d.headline}
+              Hi <span style={{color:"#86BC25"}}>{visitorName||teammateName}</span>, {d.headline}
            </h1>
         }
 
@@ -1249,7 +1249,7 @@ function App(){
       </nav>
 
       {page==="landing"
-        ?<LandingPage teammateName={teammateName} onStart={()=>{setPage("wizard");localStorage.setItem("asa_page","wizard");}}/>
+        ?<LandingPage teammateName={teammateName} visitorName={visitorName} onStart={()=>{setPage("wizard");localStorage.setItem("asa_page","wizard");}}/>
         :(
           <div style={{flex:1,display:"flex"}}>
             <div style={{width:"210px",flexShrink:0,background:"#121A0D",borderRight:"1px solid #1E2E15",display:"flex",flexDirection:"column"}}>
@@ -1289,7 +1289,7 @@ function App(){
         )
       }
 
-      {showSettings&&<SettingsModal teammateName={teammateName} onSave={name=>{setTeammateName(name);localStorage.setItem("asa_teammate",name);setShowSettings(false);}} onClose={()=>setShowSettings(false)}/>}
+      {showSettings&&<SettingsModal teammateName={teammateName} visitorName={visitorName} onSave={(tName,vName)=>{setTeammateName(tName);localStorage.setItem("asa_teammate",tName);setVisitorName(vName);localStorage.setItem("asa_visitor_name",vName);setShowSettings(false);}} onClose={()=>setShowSettings(false)}/>}
       {showPreview&&strategy&&<PreviewModal strategy={strategy} form={form} onClose={()=>setShowPreview(false)} onExport={handleExport}/>}
     </div>
   );
